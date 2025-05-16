@@ -1,63 +1,91 @@
+import platform
 import os
 import time
 import subprocess
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
-class CommandBrainAPI:
-    def __init__(self):
-        self.app = Flask(__name__)
-        CORS(self.app)
+app = Flask(__name__)
+CORS(app)
 
-        self.app.route('/', methods=['GET'])(self.health_check)
-        self.app.route('/execute', methods=['POST'])(self.execute_command)
+# Commands grouped by category and OS
+command_categories = {
+    "Windows": {
+        "filesystem": ["dir", "cd", "mkdir", "rmdir", "del", "copy", "move", "type", "attrib", "chkdsk"],
+        "network": ["ping", "ipconfig", "netstat", "tracert"],
+        "system": ["systeminfo", "tasklist", "taskkill", "hostname", "whoami", "shutdown", "wmic", "powershell"],
+    },
+    "Linux": {
+        "filesystem": ["ls", "cd", "mkdir", "rmdir", "rm", "cp", "mv", "cat", "chmod", "chown", "df"],
+        "network": ["ping", "ifconfig", "netstat", "traceroute", "ip"],
+        "system": ["uname", "top", "ps", "whoami", "shutdown", "systemctl", "journalctl"],
+    },
+    "Darwin": {  # macOS
+        "filesystem": ["ls", "cd", "mkdir", "rmdir", "rm", "cp", "mv", "cat", "chmod", "chown", "df"],
+        "network": ["ping", "ifconfig", "netstat", "traceroute", "ipconfig"],
+        "system": ["uname", "top", "ps", "whoami", "shutdown", "systemsetup"],
+    }
+}
 
-    def health_check(self):
-        return "Command Brain backend is running."
+def classify_command(os_name, command):
+    cmd_word = command.strip().split(" ")[0].lower()
+    categories = command_categories.get(os_name, {})
+    for category, cmds in categories.items():
+        if cmd_word in cmds:
+            return category
+    return "unknown"
 
-    def execute_command(self):
-        data = request.get_json()
-        command = data.get("command")
-        directory = data.get("directory")
+@app.route("/execute", methods=["POST"])
+def execute_command():
+    data = request.get_json()
+    command = data.get("command", "")
+    directory = data.get("directory", "")
 
-        if not command:
-            return jsonify({"error": "Command is required"}), 400
+    if not command:
+        return jsonify({"error": "Command is required"}), 400
 
-        cwd = directory if directory and os.path.isdir(directory) else None
+    current_os = platform.system()  # Windows, Linux, Darwin
 
-        start_time = time.time()
+    # Adjust command for dir/ls as needed
+    cmd_lower = command.lower().strip()
+    if current_os != "Windows" and cmd_lower == "dir":
+        command = "ls -la"
+    elif current_os == "Windows" and cmd_lower.startswith("ls"):
+        command = "dir"
 
-        try:
-            result = subprocess.run(
-                command,
-                shell=True,
-                capture_output=True,
-                text=True,
-                cwd=cwd
-            )
-            output = result.stdout
-            error = result.stderr
-        except Exception as e:
-            return jsonify({"error": str(e)}), 500
+    cwd = directory if directory and os.path.isdir(directory) else None
 
-        end_time = time.time()
-        exec_time_ms = round((end_time - start_time) * 1000)
+    start_time = time.time()
 
-        if error:
-            return jsonify({"error": error, "executionTime": f"{exec_time_ms} ms"}), 500
+    try:
+        result = subprocess.run(
+            command,
+            shell=True,
+            capture_output=True,
+            text=True,
+            cwd=cwd
+        )
+        output = result.stdout.strip()
+        error = result.stderr.strip()
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-        if not output.strip():
-            output = "✅ Command executed successfully."
+    end_time = time.time()
+    exec_time_ms = round((end_time - start_time) * 1000)
 
-        return jsonify({
-            "output": output,
-            "executionTime": f"{exec_time_ms} ms"
-        })
+    if error:
+        return jsonify({"error": error, "executionTime": f"{exec_time_ms} ms"}), 500
 
-    def run(self):
-        self.app.run(host='0.0.0.0', port=5000, debug=True)
+    if not output:
+        output = "✅ Command executed successfully."
 
+    category = classify_command(current_os, command)
+
+    return jsonify({
+        "output": output,
+        "executionTime": f"{exec_time_ms} ms",
+        "category": category
+    })
 
 if __name__ == "__main__":
-    api = CommandBrainAPI()
-    api.run()
+    app.run(port=5000, debug=True)
