@@ -13,7 +13,8 @@ const circleBaseStyle = {
   userSelect: "none",
   transition: "box-shadow 0.3s ease, transform 0.3s ease",
   textTransform: "lowercase",
-  backgroundColor: "rgba(0, 0, 0, 0.6)",
+  backgroundColor: "rgba(0, 0, 0, 0.65)",
+  zIndex: 2,
 };
 
 const positions = {
@@ -24,7 +25,6 @@ const positions = {
   registry:   { top: "40%", left: "15%", borderColor: "#cc33ff", color: "#cc33ff" },
   other:      { top: "82%", left: "60%", borderColor: "#888", color: "#888" },
 };
-
 
 const CommandBrainDiagram = ({ lastCategory }) => {
   return (
@@ -42,7 +42,12 @@ const CommandBrainDiagram = ({ lastCategory }) => {
       <img
         src={brainImg}
         alt="Brain diagram"
-        style={{ width: "100%", height: "100%", objectFit: "contain" }}
+        style={{
+          width: "100%",
+          height: "100%",
+          objectFit: "contain",
+          zIndex: 1,
+        }}
       />
       {Object.entries(positions).map(([category, style]) => {
         const glowing = lastCategory === category;
@@ -53,9 +58,9 @@ const CommandBrainDiagram = ({ lastCategory }) => {
               ...circleBaseStyle,
               ...style,
               boxShadow: glowing
-                ? `0 0 20px 8px ${style.borderColor}`
-                : "0 0 6px 1px rgba(0,0,0,0.3)",
-              transform: glowing ? "scale(1.1)" : "scale(1)",
+                ? `0 0 25px 10px ${style.borderColor}`
+                : `0 0 8px 2px ${style.borderColor}55`,
+              transform: glowing ? "scale(1.15)" : "scale(1)",
               fontWeight: glowing ? "700" : "600",
             }}
           >

@@ -14,18 +14,36 @@ command_categories = {
         "filesystem": ["dir", "cd", "mkdir", "rmdir", "del", "copy", "move", "type", "attrib", "chkdsk"],
         "network": ["ping", "ipconfig", "netstat", "tracert"],
         "system": ["systeminfo", "tasklist", "taskkill", "hostname", "whoami", "shutdown", "wmic", "powershell"],
+      "memory": [
+    "systeminfo",
+    "tasklist",
+    "wmic OS get FreePhysicalMemory",
+    "wmic OS get TotalVisibleMemorySize",
+    "wmic OS get FreePhysicalMemory,TotalVisibleMemorySize",
+    "wmic process get name,workingsetsize"
+],
+
+        "registry": ["reg", "regedit", "reg query", "reg add", "reg delete"],
+        "other": ["echo", "pause", "cls", "set", "title"]
     },
     "Linux": {
         "filesystem": ["ls", "cd", "mkdir", "rmdir", "rm", "cp", "mv", "cat", "chmod", "chown", "df"],
         "network": ["ping", "ifconfig", "netstat", "traceroute", "ip"],
         "system": ["uname", "top", "ps", "whoami", "shutdown", "systemctl", "journalctl"],
+        "memory": ["free", "vmstat", "top", "htop"],
+        "registry": ["gsettings", "dconf", "gconftool-2"],
+        "other": ["echo", "clear", "alias", "export", "set"]
     },
-    "Darwin": {  # macOS
+    "Darwin": {
         "filesystem": ["ls", "cd", "mkdir", "rmdir", "rm", "cp", "mv", "cat", "chmod", "chown", "df"],
         "network": ["ping", "ifconfig", "netstat", "traceroute", "ipconfig"],
         "system": ["uname", "top", "ps", "whoami", "shutdown", "systemsetup"],
+        "memory": ["vm_stat", "top", "ps"],
+        "registry": ["defaults", "plistbuddy"],
+        "other": ["echo", "clear", "say", "alias"]
     }
 }
+
 
 def classify_command(os_name, command):
     cmd_word = command.strip().split(" ")[0].lower()
