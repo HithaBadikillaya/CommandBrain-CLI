@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import CommandBrainDiagram from "./CommandBrainDiagram";
 
 const CommandBrain = () => {
-  const [directory, setDirectory] = useState("D:\\SCEM\\projects\\");
-  const [command, setCommand] = useState("dir");
+  const [directory, setDirectory] = useState("");
+  const [command, setCommand] = useState("");
   const [output, setOutput] = useState("");
   const [time, setTime] = useState(0);
   const [category, setCategory] = useState(null);

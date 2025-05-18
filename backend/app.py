@@ -62,14 +62,7 @@ def execute_command():
     if not command:
         return jsonify({"error": "Command is required"}), 400
 
-    current_os = platform.system()  # Windows, Linux, Darwin
-
-    # Adjust command for dir/ls as needed
-    cmd_lower = command.lower().strip()
-    if current_os != "Windows" and cmd_lower == "dir":
-        command = "ls -la"
-    elif current_os == "Windows" and cmd_lower.startswith("ls"):
-        command = "dir"
+    current_os = platform.system()  
 
     cwd = directory if directory and os.path.isdir(directory) else None
 
